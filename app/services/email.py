@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.user import User
 from app.models.match import Match
+   
+   
+import logging
+logger = logging.getLogger(__name__)
 
 # Set API Key (Will fail gracefully if key is missing)
 resend.api_key = settings.RESEND_API_KEY
@@ -10,7 +14,7 @@ resend.api_key = settings.RESEND_API_KEY
 def send_email(to: str, subject: str, html: str):
     """Low-level send. All other functions call this one."""
     if not settings.RESEND_API_KEY:
-        print(f"[EMAIL MOCK] To: {to} | Subject: {subject}")
+        logger.info(f"[EMAIL MOCK] To: {to} | Subject: {subject}")
         return
     
     try:
@@ -20,9 +24,9 @@ def send_email(to: str, subject: str, html: str):
             'subject': subject,
             'html':    html,
         })
+        logger.info(f'Email sent to {to}')
     except Exception as e:
-        print(f'[EMAIL ERROR] Could not send to {to}: {e}')
-
+        logger.error(f'Email failed for {to}: {e}')
 def send_match_suggested_email(match: Match, db: Session):
     """Email sent when a new match is created (status = pending)."""
     mentee = db.query(User).filter(User.id == match.mentee_id).first()
